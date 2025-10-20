@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Special Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for beautiful data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <style>
+        /* Custom styles for Inter font and general body look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc;
+        }
+        .container-card {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+        .container-card:hover {
+            transform: translateY(-1px);
+        }
+        .result-detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+        .result-detail:last-child {
+            border-bottom: none;
+        }
+        .view-section {
+            display: none; /* Hidden by default, controlled by JS */
+        }
+    </style>
+</head>
+<body>
+
+<div class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl">
+        
+        <!-- Navigation Header -->
+        <header class="text-center mb-8 bg-white p-4 rounded-xl shadow-lg container-card">
+            <h1 class="text-3xl font-extrabold text-blue-800 mb-2">Physics Special Test Results</h1>
+            <p class="text-lg font-medium text-gray-700 mb-2">Sanath Kariyawasam</p>
+            
+            <div class="flex flex-wrap justify-center gap-2 mt-4">
+                <button onclick="showView('student-check-view')" class="p-2 px-4 text-sm rounded-full bg-blue-100 text-blue-800 font-semibold hover:bg-blue-200 transition">Student Check</button>
+                <button onclick="showView('leaderboard-view')" class="p-2 px-4 text-sm rounded-full bg-green-100 text-green-800 font-semibold hover:bg-green-200 transition">Top 10 Leaderboard</button>
+                <button onclick="showView('teacher-login-view')" class="p-2 px-4 text-sm rounded-full bg-red-100 text-red-800 font-semibold hover:bg-red-200 transition">Teacher Login</button>
+            </div>
+        </header>
+
+        <!-- 1. STUDENT RESULTS CHECKER VIEW -->
+        <div id="student-check-view" class="view-section">
+            <div class="bg-white p-8 rounded-xl container-card mb-8">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Find Your Individual Results</h2>
+                
+                <div class="space-y-4">
+                    <!-- Batch Selector -->
+                    <div>
+                        <label for="batch-select-student" class="block text-sm font-medium text-gray-700 mb-1">Select Batch</label>
+                        <select id="batch-select-student" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out">
+                            <option value="2027">Batch 2027</option>
+                            <option value="2026">Batch 2026</option>
+                            <option value="2025">Batch 2025</option>
+                        </select>
+                    </div>
+
+                    <!-- Index Number Input -->
+                    <div>
+                        <label for="index-input" class="block text-sm font-medium text-gray-700 mb-1">Index Number</label>
+                        <input type="text" id="index-input" placeholder="e.g., 2027001" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out" onkeyup="if(event.key === 'Enter') searchResults()">
+                    </div>
+                    
+                    <!-- Search Button -->
+                    <button onclick="searchResults()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition duration-150 ease-in-out shadow-md hover:shadow-lg mt-4">
+                        Check Results
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Display Area -->
+            <div id="results-container" class="bg-white p-8 rounded-xl container-card hidden">
+                <h2 class="text-2xl font-bold text-green-700 mb-6 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Results Found
+                </h2>
+                <div id="student-details" class="space-y-4">
+                    <!-- Details will be injected here -->
+                </div>
+            </div>
+
+            <!-- Student Message Area -->
+            <div id="message-container-student" class="hidden p-4 rounded-lg text-center font-medium shadow-md transition duration-300 ease-in-out">
+                <!-- Messages will be injected here -->
+            </div>
+        </div>
+
+        <!-- 2. PUBLIC LEADERBOARD VIEW -->
+        <div id="leaderboard-view" class="view-section">
+            <div class="bg-white p-8 rounded-xl container-card mb-8">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15.5H9v-6h2v6zm4 0h-2v-4h2v4zm-3-8h-2V7h2v2z"/></svg>
+                    Top 10 Leaderboard
+                </h2>
+                <div class="mb-4">
+                    <label for="batch-select-leaderboard" class="block text-sm font-medium text-gray-700 mb-1">Select Batch for Leaderboard</label>
+                    <select id="batch-select-leaderboard" onchange="renderLeaderboard()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out">
+                        <option value="2027">Batch 2027</option>
+                        <option value="2026">Batch 2026</option>
+                        <option value="2025">Batch 2025</option>
+                    </select>
+                </div>
+
+                <div id="leaderboard-display">
+                    <!-- Leaderboard content injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. TEACHER LOGIN VIEW -->
+        <div id="teacher-login-view" class="view-section">
+            <div class="bg-white p-8 rounded-xl container-card mb-8">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Teacher Access Required</h2>
+                <p id="teacher-login-message" class="text-sm text-red-500 mb-4 hidden">Invalid credentials. Please try again.</p>
+                <div class="space-y-4">
+                    <div>
+                        <label for="teacher-username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                        <input type="text" id="teacher-username" value="" class="w-full p-3 border border-gray-300 rounded-lg" onkeyup="if(event.key === 'Enter') attemptLogin()">
+                    </div>
+                    <div>
+                        <label for="teacher-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="teacher-password" value="" class="w-full p-3 border border-gray-300 rounded-lg" onkeyup="if(event.key === 'Enter') attemptLogin()">
+                    </div>
+                    <button onclick="attemptLogin()" class="w-full bg-red-600 text-white p-3 rounded-lg font-bold hover:bg-red-700 transition shadow-md">
+                        Login to Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. TEACHER DASHBOARD VIEW -->
+        <div id="teacher-dashboard-view" class="view-section">
+            <div class="bg-white p-8 rounded-xl container-card mb-8">
+                <h2 class="text-2xl font-bold text-red-700 mb-6 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    Marks Analysis Dashboard
+                </h2>
+                <div id="dashboard-analysis-container" class="space-y-8">
+                    <!-- Analysis content and Charts injected here -->
+                </div>
+                <button onclick="logout()" class="w-full bg-gray-300 text-gray-800 p-3 rounded-lg font-bold hover:bg-gray-400 transition mt-6">
+                    Logout
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Hardcoded credentials for simplicity in this single-file demo
+    const TEACHER_USERNAME = 'teacher';
+    const TEACHER_PASSWORD = 'pass123';
+
+    // Global variable to hold all pre-calculated results (Index -> Student Data)
+    let allResults = {}; 
+    // Global variable to hold all processed student lists (Batch -> [Student Data])
+    let allStudents = {};
+
+    // --- Data Preparation: FULL CSV Data Strings ---
+    
+    // Batch 2027 (STUDENT NUMBER,NAME,SCHOOL,MCQ,Essay)
+    const rawData2027 = `STUDENT NUMBER,NAME,SCHOOL,MCQ,Essay
+2027001,M.Dilusha piumal,Mahinda College,45,37
+2027003,Hasarali Kariyawasam,Siridhamma College,37,26
+2027005,B.M.Teemod Desitha,Richmond College,38,38
+2027006,W.M.Selini lehansa,Dharmashoka College,42,46
+2027007,Chamudi Gamage,Southlands College,46,40
+2027009,S.S.Gunasekara,Rippon Girls College,38,37
+2027017,W.Methuli Sadinsa De De Silva,Southlands College,43,37
+2027018,W.P.Pamod Nisal,Mahinda College,33,26
+2027021,H.G.Thilakshi Nehara,Sri Sumangala Central College,44,39
+2027022,A.W.Umavi Jayathma,Christ Church Girls'College,27,26
+2027023,K.H.Epa,Richmond College,39,41
+2027028,Tharulya Kariyawasam,Southlands College,41,36
+2027029,P.H.Methmi Mandira Sathsarani,Christ Church Girls' College,31,33
+2027033,P.W.Umashi Thenumika,Anuladevi Balika Vidyalaya,32,35
+2027037,W.D.P.Anjana,Gampaha Bandaranayake College,43,36
+2027038,Kavindi Kawithya Bopage,Southlands College,40,48
+2027043,W.G.Tharulya Hirunadee,Southlands College,47,44
+2027044,D.K.Sathsarani Wanniarrachchi,Southlands College,42,46
+2027045,K.Vihangi Hemini,Anuladevi Balika Vidyalaya,38,36
+2027046,V.J.Anumi Nemindeee,Southlands College,31,33
+2027047,K.Kaveesh Nethmina,Allsains College,46,44
+2027049,H.P.Kishala Manjari,Southlands College,41,47
+2027053,H.K.P.Yomasha,Southlands College,39,37
+2027058,S.K.Dewhara Methumli,Southlands College,47,45
+2027064,S.L.K.Jayawardane,Richmond College,28,23
+2027071,G.A.Sashini Imasha Jayawickrama,Ananda M.M.V.,23,25
+2027072,D.Chagi Sidiwya Deshara,Rippon Girls' College,22,24
+2027073,Isali Thisakya,Sangamitta Balika Vidyalaya,49,45
+2027074,Harindu Wickrama,Richmond College,38,42
+2027078,E.S.Thenuli Thilhara,Christ Church Girls' College,25,20
+2027080,Madushani Gunawardane,Rippon Girls'College,25,33
+2027091,G.K.Chavindu Charuka,Christ Church Boys' College,19,19
+2027092,G.Rathnayake,Southlands College,45,44
+2027095,M.K.Samadhi Sankalpana,Christ Church Girls' College,13,18
+2027096,Manula Geenal Priyankara,Dharmasoka College,48,49
+2027097,D.M.G.K.Shashila Wijerathna,Devananda College,44,43
+2027098,G.W.Shashini Niwarthana,Sangamiththa Balika Vidyalaya,41,36
+2027101,G.A.Yenuli Manudula Naath,Siridamma College,38,35
+2027102,P.V.Ishara Hasalanka,St.Anthony's College,35,35
+2027103,C.N.A.W.Sooriyarachchi,Sangamiththa Balika Vidyalaya,42,44
+2027104,Nadula Yasas Wijerathne,Sri Devananda Vidyalaya,41,44
+2027105,A.A.Tharushi Sarindya,Southlands College,38,35
+2027106,M.W.Sathish Malshan,Saralankara National College,32,35
+2027107,M.H.Nethmi Nihansa,P.De.S.Kularathna College,37,40
+2027109,W.Chamath Sihilal,Vidyaloka College,42,44
+2027110,S.H.Isuru Umayangana,Dharmasoka College,43,43
+2027113,M.Shehara Dissanayaka,Southlands College,39,39
+2027117,H.L.Yenuli Sandilya,Christ Church Girls' College,30,26
+2027118,K.H.Hashin Dhilakshana,P.De.S.Kularahna College,42,37
+2027119,Dinindi Tharindya,Southlands Colege,41,43
+2027121,Nikitha Manurisi,Gampaha Bandaranayaka College,37,34
+
+
+2027123	,	H.E.Sayuri Shadhi Hansika 	,	Sacred Heart Convent	,	44	,	41
+2027124	,	Ashith Dimalsha	,	Richmond College	,	48	,	46
+2027126	,	M.W.Sasmi Sanahasi 	,	Christ Church Girls' College	,	28	,	26
+2027127	,	M. R. Disara Yasasni	,	Sangamiththa Balika Vidyalaya	,	42	,	45
+2027131	,	N.H.Ishani Madhumalee	,	Karandeniya College	,	34	,	34
+2027132	,	W.Chathumi Diwyanjalee	,	Sangamiththa Balika Vidyalaya	,	35	,	39
+2027135	,	Trilaksha Dilshani Mapa 	,	Southlands College	,	38	,	33
+2027136	,	Kavithmi Lehansa	,	Christ Church Girls' College	,	29	,	25
+2027137	,	M.A.Ruwindi Omalsha	,	Anuladevi Balika Vidyalaya	,	32	,	30
+2027138	,	Nuhansa Abewardhana	,	Rathnavali Balika Vidyalaya(Gampaha)	,	36	,	34
+2027140	,	Nikini Mandara	,	Sangamiththa Balika Vidyalaya	,	34	,	31
+2027143	,	N.H.K.Adeesh Sasmitha	,	Richmond College	,	39	,	39
+2027151	,	S.Sadew Nimnada	,	P.De.S.Kularathna College	,	41	,	33
+2027155	,	Savidya savindi Wijesingha	,	Sangamiththa Balika Vidyalaya	,	45	,	40
+2027158	,	Januda Vidmal Wathudura 	,	Mahinda College	,	47	,	35
+2027165	,	I.A.Wathmi Ayansa 	,	Rippon Girls'College	,	35	,	35
+2027170	,	J.V.G.Umandi Vidumini 	,	Rippon Girls'College	,	23	,	25
+2027171	,	Kethaka Kaveeshwara	,	Rippon Girls'College	,	33	,	38
+2027173	,	Pooja Nirmani	,	Karandeniya College	,	26	,	26
+2027177	,	Sayumdee Kariyawasam 	,	Sacred Heart Convent	,	45	,	31
+2027186	,	M.Dinuda Sithmini 	,	Sri Devananda College	,	27	,	21
+2027188	,	W.G. Chiran Wijenayaka	,	Richmond College	,	49	,	49
+2027189	,	Kumarawadu Oshini Nathasha Wijerathna 	,	Southlands College	,	39	,	38
+2027196	,	Vidul Wickramasinghe 	,	Richmond College	,	38	,	30
+2027199	,	Jinethya Lakdini	,	Sangamiththa Balika Vidyalaya	,	37	,	31
+2027200	,	P.A. Ramesha Dilshani 	,	P.De.S.Kularathna College	,	31	,	22
+2027201	,	N. N. Sathsarani Senarathna.	,	Rippon Girls'College	,	32	,	37
+2027203	,	M.Dayadi Vihangika Dewmini 	,	Southlands College	,	30	,	35
+2027204	,	Kodithuwakku Arachchige Enul Luthmin 	,	Mahinda College	,	21	,	12
+2027205	,	D.G. Methuli Mihinadee Abeygunawardhana	,	Sangamiththa Balika Vidyalaya	,	39	,	38
+2027206	,	Navitha Sandupama Abeyruwan	,	Richmond College	,	31	,	33
+2027209	,	J.V.G Budvini Amodya 	,	Sujatha Vidyalaya(Matara)	,	39	,	38
+2027212	,	Pitiduwa Gamage Shavini Amaya 	,	Sacred Heart Convent	,	33	,	32
+2027213	,	W.K.Sandil Bosilu	,	Mahinda College	,	44	,	42
+2027214	,	Poddiwala Marage Ruwan Tharaka Heshan	,		,		,	
+2027217	,	Malithi Poornami	,	Southlands College	,	33	,	26
+2027221	,	B.Hasani Malsha	,	   '	,	33	,	32
+2027228	,	Niseni Kariyawasam	,	Sangamiththa Balika Vidyalaya	,	37	,	38
+2027229	,	H.D.Uvindi Imaya 	,	Sangamiththa Balika Vidyalaya	,	35	,	35
+2027232	,	W.W.Chanul Randaya 	,	Richmond College	,	39	,	38
+2027236	,	B. Adithya Dewdinithi de Silva 	,	Rippon Girls'College	,	34	,	24
+2027237	,	Vidun Dulnitha Dharmakeerthi 	,	St.Thomas College(Mt.Lavinia)	,	38	,	37
+2027239	,	Tharumi Dilanya Lokugamage 	,		,		,	
+2027240	,	Thihansa Dinethmi 	,	Rippon Girls'College	,	27	,	20
+2027242	,	K.Senuki Kandambi	,	Southlands College	,	44	,	38
+2027243	,	M.D.Dineshi Bhagya	,		,		,	
+2027244	,	S.W.Hashini Nethmini	,	Southlands College	,	45	,	46
+2027246	,	K. L. Samodhi Santhushi 	,	Sangamiththa Balika Vidyalaya	,	39	,	38
+2027247	,	K.G.Sanduni Nisansala 	,	Sacred Heart Convent	,	49	,	45
+2027250	,	Sanuli Susanya Samaraweera 	,	Sacred Heart Convent	,	13	,	14
+2027255	,	Matheesha Ransa Wijayasekara Jayawickrama	,	Mahinda College	,	30	,	25
+2027256	,	A.Sandushi Ranmini 	,		,		,	
+2027260	,	G.M.Rashadi Pavindya 	,	Rippon Girls'College	,	28	,	33
+2027261	,	Wageeshi Sathniduni 	,		,		,	
+2027264	,	W.G.Thihansa Dewnethmi 	,	Sacred Heart Convent	,	35	,	33
+2027266	,	Yenuli M.W. Abenayake 	,		,		,	
+2027271	,	Pansilu Uddeepana	,	Batapola Central College	,	46	,	7
+2027278	,	Lashini Amodya Kariyawasam Patuwatha Withanage	,	Christ Church Girls' College	,	33	,	18
+2027282	,	Induwara Umayanga 	,	St.Anthony's College	,	34	,	31
+2027283	,	Oneli Rehara 	,	Rippon Girls'College	,	29	,	27
+2027287	,	G.D.Minila Minsara	,	Dharmasoka College	,	41	,	37
+2027292	,	G. Sasheema Dewmi 	,	Sangamiththa Balika Vidyalaya	,	26	,	24
+2027293	,	M.W.Lakindu Vihansa 	,	P.De.S.Kularathna College	,	26	,	22
+
+
+
+`;
+
+    // Batch 2026 (Name,S.N,School,MCQ,Essay) - Note: S.N is Index
+    const rawData2026 = `Name,S.N,School,MCQ,Essay
+Full name	,	Class index number		SCHOOL	,	MCQ	,	Essay
+Isuri Yasintha 	,	2026001	,	Southlands College	,	25	,	26
+Sayumi Gethmini	,	2026004	,	Rippon Girls' College	,	37	,	33
+Shenali Shenushi Himanshi Mathangaweera 	,	2026007	,	Southlands College	,	34	,	25
+Kulanija Ranthushi	,	2026008	,	Southlands College	,	33	,	28
+Thehansa Kemdini Rathnayake 	,	2026010	,	Southlands College	,	31	,	25
+G.A.Samadhi Swarnamali 	,	2026011	,	Sangamiththa Balika Vidyalaya	,	28	,	31
+I.K.Sethumya Dinadhi 	,	2026013	,	Sangamiththa Balika Vidyalaya	,	13	,	16
+Liyanage Ruvindi Kawya	,	2026014	,	Southlands College	,	26	,	21
+Samathni Rasuli Dahanayaka 	,	2026016	,	Sacred Heart Convent	,	25	,	28
+Minesha Dimsari Lokugamhewage 	,	2026019	,	Sacred Heart Convent	,	18	,	25
+Wasana Kumari	,	2026022	,	Rippon Girls' College	,	33	,	39
+Amadhi Anuththara 	,	2026028	,	Sacred Heart Convent	,	31	,	29
+Methuja Senumitha	,	2026035	,	Dharmasoka College	,	31	,	29
+Thamindu Rashmika Waravita	,	2026037	,	Richmond College	,	50	,	46
+K.L.Sehansa Damdini 	,	2026041	,	Sacred Heart Convent	,	21	,	29
+Punsala Eshani 	,	2026044	,	Sangamiththa Balika Vidyalaya	,	34	,	35
+Tharushi Anuradha Mallikarachchi 	,	2026045	,	Southlands College	,	37	,	38
+Mahith Minruka Munasinghe	,	2026055	,	Mahinda College	,	46	,	41
+Chathupa Jayasinghe	,	2026056	,	Richmond College	,	30	,	22
+Hiruki Ahasna Bodaragamage	,	2026062	,	Sangamiththa Balika Vidyalaya	,	18	,	22
+Majitha Bathila Senadhirathna	,	2026063	,	Richmond College	,	23	,	25
+Minuthi Sipsari	,	2026064	,	Sacred Heart Convent	,	26	,	33
+Maddege Isuri Apsara 	,	2026065	,	Christ Church Girls'College	,	35	,	28
+Imeth Jithnuka Fernando	,	2026080	,	Mahinda College	,	22	,	15
+Vidara Dahamdi Kannangoda Arachchi	,	2026081	,	Sangamiththa Balika Vidyalaya	,	38	,	29
+Warusi Nethmini	,	2026082	,	Rippon Girls' College	,	27	,	24
+B.W.  Radinsa Thumnadi 	,	2026086A	,	Ananda M.M.V	,	35	,	34
+B.W.Rusansa Thumindi	,	2026086B	,	Ananda M.M.V	,	34	,	37
+P.Buddhinee Kasundara 	,	2026087	,	Ananda M.M.V	,	25	,	23
+K.B.Anupama Dasun	,	2026091	,	Mahinda College	,	42	,	41
+S.A.Thisangi Tihara	,	2026096	,	Sacred Heart Convent	,	29	,	30
+H.L.Nethmi Sathsarani 	,	2026102	,	Rippon Girls' College	,	24	,	27
+Erandi Kawshalya 	,	2026108	,	Rippon Girls' College	,	25	,	23
+Matheesha Kaushani 	,	2026127	,	Christ Church Girls'College	,	20	,	25
+I.D.Nithya Thejani	,	2026131	,	Ananda M.M.V	,	27	,	32
+R.M.Kenoli Rathnayake 	,	2026143	,	Dharmasoka College	,		,	
+Merenchi Kankanamge Reshma Sanjana 	,	2026147	,	Christ Church Girls'College	,	18	,	16
+Viruna Insitha	,	2026153	,	Sir Richard Pathirana College	,	28	,	21
+M.M.Kalana Induma	,	2026154	,	P.De.S.Kularathna College	,	27	,	30
+Tharuki Yehansa  Gamage 	,	2026155	,	Southlands College	,	40	,	29
+K.K.V. Janudi Amodya	,	2026168	,	Dharmasoka College	,	32	,	32
+W. A. Amaya Prabodhani 	,	2026171	,	Ananda M.M.V	,	25	,	25
+P.M.Oshitha Sandaruwan 	,	2026174	,	Sir Richard Pathirana College	,	33	,	27
+Ahangamage Geethika Pesanjith 	,	2026175	,	St.Aloysius College	,	22	,	26
+A.W. Yethmi Thisarani Bawanya 	,	2026180	,	Christ Church Girls'College	,	31	,	38
+Chathusha chathurya	,	2026183	,	Devananda College	,	33	,	23
+Oshini kavindi 	,	2026185	,	Sri Sumangala Central College	,	17	,	7
+N.G.A.Thisaru Sandeepa 	,	2026188	,	Vidyaloka Vidyalaya	,	19	,	14
+D.D.Ranuthmee Dilansa Samarasinghe 	,	2026189	,	Southlands College	,	42	,	32
+M.T.Yenuli Himanga 	,	2026190	,	Southlands College	,		,	
+Esandi Inupama Weerasinghe	,	2026195	,	Southlands College	,	29	,	33
+Nethmi Himasha 	,	2026205	,	Christ Church Girls'College	,	10	,	8
+M.K.Oshitha Umanga 	,	2026206	,	Saralankara College	,	23	,	29
+ Sumathra Kaushyalee	,	2026218	,	Sangamiththa Balika Vidyalaya	,	42	,	36
+Dilmi Sanjana 	,	2026227	,	Sacred Heart Convent	,	24	,	14
+Manuka Rison	,	2026232	,	Richmond College	,	42	,	37
+P.L.P.Navoda Sewwandi	,	2026237	,	Batemulla National College	,		,	
+Thasara Liyanagama	,	2026243	,	Sacred Heart Convent	,	22	,	23
+Kavindu Induwara Dias	,	2026257	,	Richmond College	,	30	,	30
+Ometh Virusara Nanayakkara Samarapperuma	,	2026265	,	Richmond College	,	30	,	28
+M.L.Sadewma Manthusi	,	2026276	,	Sangamiththa Balika Vidyalaya	,	15	,	16
+Teesha Liyon	,	2026279	,	Southlands College	,	28	,	27
+Anudi Apsari Lelwala 	,	2026281	,	Sangamiththa Balika Vidyalaya	,	22	,	20
+Kankanamge Amodi Akarsha Kodithuwakku 	,	2026292	,	Southlands College	,	29	,	32
+P.K.Chamodya Amandi	,	2026293	,	Rippon Girls' College	,	34	,	24
+K.G. Sanuki Limanya 	,	 2026298	,	Sacred Heart Convent	,	27	,	30
+I.H.Pathmidu Maneth	,	2026302	,	Bounavista College	,	23	,	24
+Mihin Manrusa Epa	,	2026304	,	Richmond College	,	32	,	32
+L.M.Miyuni Mehara	,	2026314	,	Southlands College	,	22	,	17
+Madugodage Sithmi Samisha Diwyanjali	,	2026315	,	Southlands College	,	31	,	26
+Dadallage Hiruni Keshala 	,	2026316	,	Rippon Girls' College	,	24	,	25
+S.R.Kaveesha Dewduni 	,	2026326	,	Janadhipathi Balika Vidyalaya	,	25	,	25
+Yuthmika Yasathma	,	2026337	,	Saralankara College	,	43	,	42
+Goluwa Marakkalage Saduni Sneha	,	2026339	,	Sangamiththa Balika Vidyalaya	,	26	,	27
+N.E. Sandali Dinethmi	,	2026343	,	Amarasuriya College	,	17	,	12
+Pabodha jayasinghe 	,	2026346	,	Southlands College	,	15	,	26
+Ridma Hiranthi	,	2026351	,	Sri Sumangala Central College	,	20	,	15
+K.H.Onali Nethsarani 	,	2026352	,	Southlands College	,	14	,	22
+Tihan Aloka Mahesha 	,	2026354	,	Richmond College	,	20	,	17
+Nanayakkara Egodage Dinugi Sithlini 	,	2026356	,	Southlands College	,	18	,	19
+P.L.Usara Tarindi	,	2026367	,	Saralankara College	,	18	,	20
+Ranudi Liyanage 	,	2026369	,	Southlands College	,	28	,	24
+Ayodya Gallage	,	2026381	,	Prajapathi Balika Vidyalaya	,	20	,	30
+Pabodha Dewmni	,	2026389	,	Southlands College	,	28	,	27
+Kavin Sasmira	,	2026392	,	Richmond College	,	50	,	46
+D.G.Sithum Pabasara 	,	2026397	,	Richmond College	,	35	,	30
+Yalithi Novanya	,	2026400	,	Southlands College	,		,	
+Nethandu Thewmin	,	2026401	,	Richmond College	,	37	,	41
+M.G.Rashini Tharanga	,	2026402	,	Sangamiththa Balika Vidyalaya	,		,	
+Thevindu Kariyawasam 	,	2026406	,	Richmond College	,	33	,	32
+Sithmi Akurugoda 	,	2026407	,	Southlands College	,	36	,	29
+Ridmi Vimashi 	,	2026409	,	Southlands College	,		,	
+Rankadu Pattalage Sneha Rankaduwa 	,	2026410	,	Sangamiththa Balika Vidyalaya	,		,	
+K. Hivin Sivsath Silva	,	2026414	,	St.Aloysius College	,		,	
+Supahan Ranawaka	,	2026418	,	Richmond College	,		,	
+D. D. Sachini Lakshika Kumarasinghe 	,	2026424 	,	Southlands College	,	28	,	23
+T.Nethula Dulmith	,	2026434	,	Richmond College	,	22	,	15
+M.L.Dinuri Kavinda	,	2026438	,	Sacred Heart Convent	,		,	
+W.Kavindi Imeshika 	,	2026445	,	Southlands College	,	26	,	24
+
+  
+
+`;
+
+    // Batch 2025 (Index Number,,Name,,School,,MCQ,Essay) - Note the extra commas
+    const rawData2025 = `Index Number,,Name,,School,,MCQ,Essay
+2.Class index number		1.Full name		School		MCQ		Essay
+2025003	,,	Sanuthmi Dihasna 	,,	Bounavista College	,,	18	,	22
+2025008	,,	W.M.Tinuka Sejan	,,	Mahinda College	,,	30	,	20
+2025013	,,	Sachindi Rashenya	,,	Dharmasoka College	,,	28	,	10
+2025017	,,	Pamudi Prarthana Gunasekara	,,	Rippon  Girls' College	,,	34	,	39
+2025021	,,	A.V. Sandinsa Samalmi 	,,	Siridamma College	,,	34	,	37
+2025022	,,	M.I.F.Ifza	,,	Southlands College	,,	34	,	34
+2025025	,,	Kaweesha Wickramasinghe 	,,	Mahinda College	,,	32	,	22
+2025028	,,	W.Dithira Disan	,,	Christ Church Boys' College	,,	15	,	6
+2025032	,,	A.W.Chethya Thisarani Mihinsa 	,,	Christ Church Girls' College	,,	19	,	19
+2025044	,,	H.G.Methul Mindiya 	,,	Siridamma College	,,	12	,	13
+2025047	,,	Siron weerapperuma 	,,	Saralankara College	,,	28	,	32
+2025048	,,	K.M.G.Asindu Irangith Usmina Dias	,,	Vidyaloka College	,,	16	,	4
+2025049	,,	D.K.Senuri Sachindya Padmaweera 	,,	Christ Church Girls' College	,,	11	,	7
+2025055	,,	Yasiru Subash	,,	Richmond College	,,	41	,	43
+2025065	,,	Isumi Chanmini 	,,	Sacred Heart Convent	,,	22	,	21
+2025070	,,	Lakshika Charuni	,,	Saralankara College	,,	17	,	15
+2025074	,,	K. K. Dewmi shehara Thathsarani	,,	Ginthota M.V	,,	11	,	4
+2025076	,,	Senuri Nanayakkara 	,,	Siridamma College	,,	17	,	33
+2025079	,,	Minadi dihasa	,,	Sacred Heart Convent	,,	0	,	0
+2025085	,,	Hansaja Sandanimali Kalinga	,,	Janadipathi Balika Vidyalaya	,,	13	,	10
+2025086	,,	N.T.P.G.Thenumi Imalya 	,,	Christ Church Girls' College	,,	0	,	0
+2025090	,,	Kodagoda Pathiranage Amaya Kavindi 	,,	Christ Church Girls' College	,,	10	,	8
+2025096	,,	Mothila Tathsilu	,,	Richmond College	,,	33	,	43
+2025098	,,	W.V.P Dulmi Sahanya 	,,	Rippon  Girls' College	,,	23	,	30
+2025102	,,	W.Sadeesha Rashmika	,,	Mahinda College	,,	15	,	11
+2025104	,,	Nitishi Ranshika	,,	Sangamiththa Balika Vidyalaya	,,	16	,	10
+2025106	,,	L. E. Wageesha Damsaree 	,,	Christ Church Girls' College	,,	14	,	15
+2025109	,,	M.E.D.Nemashika	,,	Sri Lanka Singappore Friendship College	,,	19	,	20
+2025112	,,	Madushi Maleesha Ihalavithana 	,,	St.Mary's Convent	,,	17	,	14
+2025115	,,	L.H.L.Tirana Dhimanthi 	,,	Saralankara College	,,	19	,	20
+2025123	,,	K.K. Methmi Hasanjana	,,	Dharmapala Girls' National College	,,	11	,	10
+2025134	,,	P.H.Ayodya Imandi 	,,	P.De.S.Kularathna College	,,	0	,	0
+2025138	,,	P.G.Hasangi Duleesha	,,	Southlands College	,,	16	,	17.75
+2025140	,,	Chathuka Jayanindu De Silva	,,	Richmond College	,,	19	,	6
+2025150	,,	A.G.Deneth Mihiranga	,,	St.Aloysius College	,,	15	,	17
+2025151	,,	M.Rithmal Deelana	,,	Mahinda College	,,	28	,	24
+2025152	,,	H.H.Dumindu Hansamal	,,	Mahinda College	,,	28	,	26
+2025159	,,	Dickwella Patabandige Ginuri Thathsandi 	,,	Anuladevi Balika Vidyalaya	,,	13	,	9
+2025162	,,	Denuwan Prabashwara	,,	Mahinda College	,,	26	,	25
+2025165	,,	K.P.Hansani Hirupaba 	,,	Sangamiththa Balika Vidyalaya	,,	25	,	23
+2025172	,,	Dinethya Sarindi Jayasinghe 	,,	Southlands College	,,	30	,	31
+2025173	,,	Pumuditha Avindya Palliyaguru	,,	Richmond College	,,	43	,	38
+2025181	,,	Dinethra Jayawardene	,,	Southlands College	,,	37	,	40
+2025188,,Upeksha Demini,,Thelijjawila Royal College,,29,28
+2025189	,,	Gusthigngnawadu Rashmi Chathurya	,,	Siridamma College	,,	28	,	36
+2025197	,,	Esandi Omaya 	,,	Southlands College	,,	32	,	27.75
+2025232	,,	T.Methuli Livisarani	,,	Sangamiththa Balika Vidyalaya	,,	35	,	37
+2025224	,,	Kimuthu	,,	Southlands College	,,	38	,	36
+2025247	,,	Dimeli palagolla 	,,	Southlands College	,,	32	,	38
+2025252	,,	Thambiliya Godage Tharusha Deneth	,,	Mahinda College	,,	40	,	38
+2025257	,,	Ravindu Gimhana	,,	Mahinda College	,,	33	,	31
+2025260	,,	W.M.V.A.Kaweesha Manushi	,,		,,		,	37
+2025261	,,	A.V.Sahas Wenusha	,,	St.Aloysius College	,,	28	,	30
+2025268	,,	K.W.Adeesha Indunil	,,	Christ Church Boys' College	,,		,	
+2025276	,,	Sandani Jayawardhane 	,,	Christ Church Girls' College	,,	19	,	25
+2025280	,,	U.Supuni Dilhara	,,	Sangamiththa Balika Vidyalaya	,,	29	,	38
+2025294	,,	Kosma pasan minidu kawushalya 	,,	Vidyaloka College	,,	17	,	5
+2025302	,,	M.Sathsarani	,,	Anuladevi Balika Vidyalaya	,,	17	,	8
+2025305	,,	Olitha Niduwara Jayawardana 	,,	St.Aloysius College	,,	36	,	26
+2025319	,,	Onali Vihanga	,,	Southlands College	,,	14	,	11.5
+2025322	,,	Sathru Kavij Binudika Withanage	,,	Richmond College	,,	26	,	23
+2025323	,,	Manula Pramuditha Yatagama	,,	-	,,	31	,	37
+2025338	,,	K.G.Widuneth waruna 	,,	St.Aloysius College	,,	26	,	25.25
+2025356	,,	P.K.Pahandee Amodya	,,	Southlands College	,,	33	,	39
+2025364	,,	L.G.Nethuli Sathnadee	,,	Siridamma College	,,	22	,	15
+2025370	,,	Janidu Hansana Ilangasinghe	,,	Christ Church  Boys' College	,,	12	,	12
+2025374	,,	Theshani Tharika Hewawithana	,,	Anuladevi Balika Vidyalaya	,,	19	,	14
+2025386	,,	Weragoda Vithanage Matheesha Dewni 	,,	Sri Sumangala Central College	,,		,	
+2025388	,,	S.Malithi Sanchala 	,,	Dharmasoka College	,,		,	
+2025389	,,	E.Isuru Sachintha	,,	St.Aloysius College	,,	19	,	18
+2025390	,,	M.Akila Dulani	,,	Devapathiraja College	,,	26	,	34
+
+
+
+
+
+`;
+    // --- End Data Strings ---
+
+    /**
+     * Define the grading scheme based on Total Marks (Max 100).
+     * @param {number} total - The student's total marks (Max 100).
+     * @returns {string} The corresponding Grade.
+     */
+    function getGrade(total) {
+        if (total >= 75) return 'A';
+        if (total >= 60) return 'B';
+        if (total >= 50) return 'C';
+        if (total >= 35) return 'S';
+        return '-';
+    }
+
+    /**
+     * Parses the raw CSV string for a batch, calculates results, and computes ranks.
+     * @param {string} rawData - The raw CSV string.
+     * @param {number} batchYear - The year of the batch (e.g., 2027).
+     * @returns {Object} { studentMap: {Index: Data}, studentList: [Data] }
+     */
+    function processBatchData(rawData, batchYear) {
+        const lines = rawData.trim().split('\n').filter(line => line.trim() !== '');
+        if (lines.length < 2) return { studentMap: {}, studentList: [] }; 
+
+        const students = [];
+        const studentMap = {};
+
+        // Skip header row
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i];
+            const columns = line.split(',').map(col => col.trim());
+
+            let index, name, school, mcq, essay;
+
+            if (batchYear === 2027) {
+                // Structure: [Index, Name, School, MCQ, Essay]
+                if (columns.length < 5) continue;
+                index = columns[0];
+                name = columns[1];
+                school = columns[2];
+                mcq = parseInt(columns[3]);
+                essay = parseInt(columns[4]);
+            } else if (batchYear === 2026) {
+                // Structure: [Name (with serial), S.N, School, MCQ, Essay]
+                if (columns.length < 5) continue;
+                name = columns[0].replace(/^\d+\.\s*/, '').trim(); // Remove serial number (e.g., "1.")
+                index = columns[1];
+                school = columns[2];
+                mcq = parseInt(columns[3]);
+                essay = parseInt(columns[4]);
+            } else if (batchYear === 2025) {
+                // Structure: [Index, , Name, , School, , MCQ, Essay] - 8 columns with empty gaps
+                if (columns.length < 8) continue;
+                index = columns[0];
+                name = columns[2];
+                school = columns[4];
+                mcq = parseInt(columns[6]);
+                essay = parseInt(columns[7]);
+            }
+
+            const totalMarks = (mcq || 0) + (essay || 0);
+
+            if (index && name && school && !isNaN(mcq) && !isNaN(essay)) {
+                students.push({
+                    index: index,
+                    name: name,
+                    school: school,
+                    mcqMarks: mcq,
+                    essayMarks: essay,
+                    totalMarks: totalMarks,
+                    grade: getGrade(totalMarks),
+                    rank: 0 
+                });
+            }
+        }
+
+        // Sort students by Total Marks (descending) to determine rank
+        students.sort((a, b) => b.totalMarks - a.totalMarks);
+
+        // Assign Rank (handling ties)
+        let currentRank = 1;
+        for (let i = 0; i < students.length; i++) {
+            if (i > 0 && students[i].totalMarks < students[i - 1].totalMarks) {
+                currentRank = i + 1;
+            }
+            students[i].rank = currentRank;
+            studentMap[students[i].index.toUpperCase()] = students[i];
+        }
+
+        return { studentMap, studentList: students };
+    }
+
+    /**
+     * Initializes the data structure by processing all batches.
+     */
+    function initializeData() {
+        const data2027 = processBatchData(rawData2027, 2027);
+        const data2026 = processBatchData(rawData2026, 2026);
+        const data2025 = processBatchData(rawData2025, 2025);
+
+        allResults['2027'] = data2027.studentMap;
+        allResults['2026'] = data2026.studentMap;
+        allResults['2025'] = data2025.studentMap;
+
+        allStudents['2027'] = data2027.studentList;
+        allStudents['2026'] = data2026.studentList;
+        allStudents['2025'] = data2025.studentList;
+
+        console.log("Data initialized, ranked, and stored for all batches.");
+        showView('student-check-view'); // Default view
+    }
+
+    // --- View Switching and General Utilities ---
+
+    /**
+     * Switches the active view displayed to the user.
+     * @param {string} viewId - The ID of the view section to show.
+     */
+    function showView(viewId) {
+        // Destroy existing charts before hiding views to prevent memory leaks/re-rendering issues
+        if (viewId !== 'teacher-dashboard-view') {
+            destroyAllCharts();
+        }
+
+        // Hide all views
+        document.querySelectorAll('.view-section').forEach(view => {
+            view.style.display = 'none';
+        });
+
+        // Show the requested view
+        const activeView = document.getElementById(viewId);
+        if (activeView) {
+            activeView.style.display = 'block';
+        }
+
+        // Clear all previous messages/results when switching view
+        clearDisplays(); 
+
+        // Specific actions for new views
+        if (viewId === 'leaderboard-view') {
+            renderLeaderboard();
+        } else if (viewId === 'teacher-dashboard-view') {
+            renderDashboard();
+        }
+    }
+
+    /**
+     * Stores references to Chart.js instances to allow for clean destruction.
+     */
+    const chartInstances = {}; 
+    
+    function destroyAllCharts() {
+        Object.keys(chartInstances).forEach(id => {
+            if (chartInstances[id]) {
+                chartInstances[id].destroy();
+                chartInstances[id] = null;
+            }
+        });
+    }
+
+
+    /**
+     * Displays an error or information message in the student view.
+     */
+    function displayMessage(message, type) {
+        const container = document.getElementById('message-container-student');
+        container.textContent = message;
+        container.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-yellow-100', 'text-yellow-700');
+        
+        if (type === 'error') {
+            container.classList.add('bg-red-100', 'text-red-700');
+        } else {
+            container.classList.add('bg-yellow-100', 'text-yellow-700');
+        }
+
+        document.getElementById('results-container').classList.add('hidden');
+    }
+
+    /**
+     * Clears all student results and messages.
+     */
+    function clearDisplays() {
+        document.getElementById('results-container').classList.add('hidden');
+        document.getElementById('message-container-student').classList.add('hidden');
+        document.getElementById('student-details').innerHTML = '';
+        const loginMsg = document.getElementById('teacher-login-message');
+        if (loginMsg) loginMsg.classList.add('hidden');
+    }
+
+    // --- Student Results Logic (Unchanged) ---
+
+    function searchResults() {
+        clearDisplays();
+        
+        const batch = document.getElementById('batch-select-student').value;
+        const indexInput = document.getElementById('index-input').value.trim();
+
+        if (!indexInput) {
+            displayMessage("Please enter your Index Number to check results.", 'info');
+            return;
+        }
+
+        const indexNumber = indexInput.toUpperCase();
+
+        const batchResults = allResults[batch];
+        if (!batchResults) {
+            displayMessage(`Error: No data available for Batch ${batch}.`, 'error');
+            return;
+        }
+
+        const student = batchResults[indexNumber];
+
+        if (student) {
+            const detailsHtml = `
+                <div class="result-detail border-t pt-2">
+                    <span class="font-semibold text-gray-600">Index Number:</span>
+                    <span class="text-gray-800 font-mono">${student.index}</span>
+                </div>
+                <div class="result-detail">
+                    <span class="font-semibold text-gray-600">Student Name:</span>
+                    <span class="text-gray-800 text-right">${student.name}</span>
+                </div>
+                <div class="result-detail">
+                    <span class="font-semibold text-gray-600">School:</span>
+                    <span class="text-gray-800 text-right">${student.school}</span>
+                </div>
+                <div class="result-detail">
+                    <span class="font-semibold text-gray-600">MCQ Marks:</span>
+                    <span class="text-indigo-600 font-bold">${student.mcqMarks} / 50</span>
+                </div>
+                <div class="result-detail">
+                    <span class="font-semibold text-gray-600">Essay Marks:</span>
+                    <span class="text-indigo-600 font-bold">${student.essayMarks} / 50</span>
+                </div>
+                
+                <div class="result-detail pt-4">
+                    <span class="text-xl font-bold text-blue-800">TOTAL MARKS:</span>
+                    <span class="text-2xl font-extrabold text-blue-800">${student.totalMarks} / 100</span>
+                </div>
+
+                <div class="result-detail bg-green-50 p-3 rounded-lg mt-4">
+                    <span class="text-xl font-bold text-green-700">FINAL GRADE:</span>
+                    <span class="text-3xl font-extrabold text-green-700">${student.grade}</span>
+                </div>
+
+                <div class="result-detail bg-yellow-50 p-3 rounded-lg">
+                    <span class="text-xl font-bold text-yellow-700">RANK (Batch ${batch}):</span>
+                    <span class="text-3xl font-extrabold text-yellow-700">#${student.rank}</span>
+                </div>
+            `;
+            
+            document.getElementById('student-details').innerHTML = detailsHtml;
+            document.getElementById('results-container').classList.remove('hidden');
+
+        } else {
+            displayMessage(`Result not found for Index Number ${indexInput} in Batch ${batch}. Please check the number and try again.`, 'error');
+        }
+    }
+    
+    // --- Leaderboard Logic (Unchanged) ---
+
+    function renderLeaderboard() {
+        const batch = document.getElementById('batch-select-leaderboard').value;
+        const listContainer = document.getElementById('leaderboard-display');
+        const students = allStudents[batch];
+
+        if (!students || students.length === 0) {
+            listContainer.innerHTML = '<p class="text-center text-gray-500">No student data available for this batch.</p>';
+            return;
+        }
+
+        // The list is already sorted and ranked by totalMarks in initializeData()
+        const topStudents = students.slice(0, 10);
+
+        let html = `
+            <div class="text-lg font-semibold text-center text-gray-700 mb-4">Top 10 Performers in Batch ${batch}</div>
+            <ul class="space-y-2">
+        `;
+
+        topStudents.forEach((student, index) => {
+            const rank = index + 1;
+            let rankClass = 'text-gray-700 bg-gray-50';
+            if (rank === 1) rankClass = 'text-yellow-800 bg-yellow-100 font-extrabold text-lg';
+            else if (rank === 2) rankClass = 'text-gray-800 bg-gray-200 font-bold';
+            else if (rank === 3) rankClass = 'text-orange-800 bg-orange-100 font-semibold';
+
+            html += `
+                <li class="flex justify-between items-center p-3 rounded-lg ${rankClass} shadow-sm">
+                    <div class="flex items-center space-x-4">
+                        <span class="w-8 h-8 flex items-center justify-center rounded-full bg-white font-mono shadow-inner border border-gray-200">${rank}</span>
+                        <div>
+                            <div class="font-semibold">${student.name}</div>
+                            <div class="text-xs text-gray-600">${student.school}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold">${student.totalMarks} / 100</div>
+                        <div class="text-sm font-mono">${student.index}</div>
+                    </div>
+                </li>
+            `;
+        });
+
+        html += `</ul>`;
+        listContainer.innerHTML = html;
+    }
+
+    // --- Teacher Dashboard Logic (Auth and Analysis) ---
+
+    function attemptLogin() {
+        const username = document.getElementById('teacher-username').value;
+        const password = document.getElementById('teacher-password').value;
+        const message = document.getElementById('teacher-login-message');
+
+        message.classList.add('hidden');
+
+        if (username === TEACHER_USERNAME && password === TEACHER_PASSWORD) {
+            showView('teacher-dashboard-view');
+        } else {
+            message.textContent = 'Invalid username or password.';
+            message.classList.remove('hidden');
+        }
+    }
+
+    function logout() {
+        destroyAllCharts();
+        showView('teacher-login-view');
+    }
+
+    /**
+     * Calculates statistics (averages, grade distribution) for a single batch.
+     */
+    function calculateBatchStats(batch) {
+        const students = allStudents[batch];
+        if (!students || students.length === 0) return null;
+
+        const totalStudents = students.length;
+        let totalMcq = 0;
+        let totalEssay = 0;
+        let totalOverall = 0;
+        const gradeCounts = { 'A': 0, 'B': 0, 'C': 0, 'S': 0, '-': 0 };
+
+        students.forEach(s => {
+            totalMcq += s.mcqMarks;
+            totalEssay += s.essayMarks;
+            totalOverall += s.totalMarks;
+            gradeCounts[s.grade] = (gradeCounts[s.grade] || 0) + 1;
+        });
+
+        const avgMcq = (totalMcq / totalStudents).toFixed(2);
+        const avgEssay = (totalEssay / totalStudents).toFixed(2);
+        const avgTotal = (totalOverall / totalStudents).toFixed(2);
+
+        const gradeDistribution = Object.keys(gradeCounts).map(grade => ({
+            grade: grade,
+            count: gradeCounts[grade],
+            percentage: ((gradeCounts[grade] / totalStudents) * 100).toFixed(1) + '%'
+        }));
+
+        return { totalStudents, avgMcq, avgEssay, avgTotal, gradeDistribution };
+    }
+
+    /**
+     * Renders a bar chart for the grade distribution of a single batch.
+     */
+    function renderGradeChart(batch, stats) {
+        const gradeOrder = ['A', 'B', 'C', 'S', '-'];
+        const dataMap = stats.gradeDistribution.reduce((acc, item) => {
+            acc[item.grade] = item.count;
+            return acc;
+        }, {});
+
+        const counts = gradeOrder.map(grade => dataMap[grade] || 0);
+        
+        const backgroundColors = [
+            'rgba(16, 185, 129, 0.9)', // Green for A
+            'rgba(59, 130, 246, 0.9)', // Blue for B
+            'rgba(245, 158, 11, 0.9)', // Yellow/Amber for C
+            'rgba(249, 115, 22, 0.9)', // Orange for S
+            'rgba(239, 68, 68, 0.9)'   // Red for F
+        ];
+        
+        const canvasId = `chart-${batch}`;
+        const ctx = document.getElementById(canvasId);
+        
+        // Check if canvas exists and context can be obtained
+        if (!ctx) return;
+        
+        // Destroy old chart instance if it exists
+        if (chartInstances[canvasId]) {
+            chartInstances[canvasId].destroy();
+        }
+
+        chartInstances[canvasId] = new Chart(ctx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: gradeOrder,
+                datasets: [{
+                    label: 'Number of Students',
+                    data: counts,
+                    backgroundColor: backgroundColors,
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: `Grade Distribution - Batch ${batch}`,
+                        font: { size: 16, weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                        title: {
+                            display: true,
+                            text: 'Student Count'
+                        }
+                    },
+                    x: {
+                         grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderDashboard() {
+        const dashboardContainer = document.getElementById('dashboard-analysis-container');
+        // Clear previous chart data and HTML
+        destroyAllCharts();
+        let html = '';
+
+        const batches = ['2027', '2026', '2025'];
+        
+        batches.forEach(batch => {
+            const stats = calculateBatchStats(batch);
+            if (stats) {
+                html += `
+                    <div class="bg-white p-6 rounded-xl border-l-4 border-red-600 shadow-xl">
+                        <h3 class="text-xl font-extrabold text-red-700 mb-6 border-b pb-2">Analysis for Batch ${batch} (N=${stats.totalStudents})</h3>
+                        
+                        <!-- Average Marks Grid -->
+                        <div class="grid grid-cols-3 gap-4 text-center mb-6">
+                            <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+                                <div class="text-sm font-medium text-red-600">Avg MCQ (Max 50)</div>
+                                <div class="text-2xl font-extrabold text-red-800">${stats.avgMcq}</div>
+                            </div>
+                            <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+                                <div class="text-sm font-medium text-red-600">Avg Essay (Max 50)</div>
+                                <div class="text-2xl font-extrabold text-red-800">${stats.avgEssay}</div>
+                            </div>
+                            <div class="p-4 bg-red-100 rounded-lg border-2 border-red-400">
+                                <div class="text-sm font-medium text-red-700">Avg Total (Max 100)</div>
+                                <div class="text-3xl font-extrabold text-red-900">${stats.avgTotal}</div>
+                            </div>
+                        </div>
+
+                        <!-- Grade Distribution Chart Area -->
+                        <div class="mt-8 mb-6 h-72">
+                            <canvas id="chart-${batch}" class="w-full h-full"></canvas>
+                        </div>
+                        
+                        <!-- Grade Distribution Detailed View -->
+                        <h4 class="text-lg font-semibold text-gray-700 mt-6 mb-3 border-t pt-4">Detailed Grade Counts</h4>
+                        <div class="grid grid-cols-5 gap-2">
+                `;
+                stats.gradeDistribution.sort((a, b) => {
+                    const order = {'A': 1, 'B': 2, 'C': 3, 'S': 4, '-': 5};
+                    return order[a.grade] - order[b.grade];
+                }).forEach(g => {
+                    let colorClass = 'bg-gray-300';
+                    let ringColor = 'ring-gray-400';
+                    if (g.grade === 'A') { colorClass = 'bg-green-500'; ringColor = 'ring-green-600'; }
+                    else if (g.grade === 'B') { colorClass = 'bg-blue-500'; ringColor = 'ring-blue-600'; }
+                    else if (g.grade === 'C') { colorClass = 'bg-yellow-500'; ringColor = 'ring-yellow-600'; }
+                    else if (g.grade === 'S') { colorClass = 'bg-orange-500'; ringColor = 'ring-orange-600'; }
+                    else if (g.grade === 'F') { colorClass = 'bg-red-500'; ringColor = 'ring-red-600'; }
+
+                    html += `
+                        <div class="p-2 text-center rounded-lg border border-gray-100 shadow-sm">
+                            <div class="text-2xl font-extrabold text-white ${colorClass} rounded-full inline-flex items-center justify-center w-10 h-10 ring-2 ${ringColor} leading-none">${g.grade}</div>
+                            <div class="font-bold text-gray-800 mt-1 text-sm">${g.percentage}</div>
+                            <div class="text-xs text-gray-500">(${g.count} St.)</div>
+                        </div>
+                    `;
+                });
+                html += `
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `<div class="p-4 bg-yellow-100 text-yellow-800 rounded-lg">No data to analyze for Batch ${batch}.</div>`;
+            }
+        });
+
+        dashboardContainer.innerHTML = html;
+
+        // --- Render charts after HTML is injected and canvas elements exist ---
+        batches.forEach(batch => {
+             const stats = calculateBatchStats(batch);
+             if (stats) {
+                 renderGradeChart(batch, stats);
+             }
+        });
+    }
+
+    // Initialize data when the script loads
+    window.onload = initializeData;
+
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
